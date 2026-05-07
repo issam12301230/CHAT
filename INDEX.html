@@ -1,0 +1,29 @@
+<script type="module">
+import OpenAI from "https://esm.sh/openai";
+
+const openai = new OpenAI({
+  apiKey: "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",
+  dangerouslyAllowBrowser: true
+});
+
+async function testSystem() {
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-5-mini",
+    messages: [
+      {
+        role: "system",
+        content: "أنت نظام Solo Leveling مظلم وغامض."
+      },
+      {
+        role: "user",
+        content: "اعطني مهمة يومية."
+      }
+    ]
+  });
+
+  console.log(response.choices[0].message.content);
+}
+
+testSystem();
+</script>
