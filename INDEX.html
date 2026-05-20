@@ -1,29 +1,1031 @@
-<script type="module">
-import OpenAI from "https://esm.sh/openai";
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الدردشة</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --panel:#101827;
+      --panel2:#162033;
+      --line:rgba(255,255,255,.12);
+      --text:#f8fafc;
+      --muted:#cbd5e1;
+      --accent:#38bdf8;
+      --accent2:#8b5cf6;
+      --danger:#fb7185;
+      --ok:#22c55e;
+      --shadow:0 18px 50px rgba(0,0,0,.38);
+      --radius:24px;
+      --bubble:#111c30;
+      --bubble2:#18263d;
+      --field:rgba(255,255,255,.06);
+    }
 
-const openai = new OpenAI({
-  apiKey: "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",
-  dangerouslyAllowBrowser: true
-});
+    body.light{
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --panel2:#eef2ff;
+      --line:rgba(15,23,42,.10);
+      --text:#0f172a;
+      --muted:#475569;
+      --shadow:0 18px 40px rgba(15,23,42,.10);
+      --bubble:#f1f5f9;
+      --bubble2:#e2e8f0;
+      --field:rgba(15,23,42,.04);
+    }
 
-async function testSystem() {
+    body.blue{
+      --bg:#061529;
+      --panel:#0f1d3a;
+      --panel2:#13254a;
+      --line:rgba(147,197,253,.16);
+      --text:#eff6ff;
+      --muted:#bfdbfe;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --bubble:#10213f;
+      --bubble2:#14305a;
+      --field:rgba(255,255,255,.06);
+    }
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5-mini",
-    messages: [
-      {
-        role: "system",
-        content: "أنت نظام Solo Leveling مظلم وغامض."
-      },
-      {
-        role: "user",
-        content: "اعطني مهمة يومية."
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:linear-gradient(160deg, var(--bg), var(--bg));
+      color:var(--text);
+      min-height:100vh;
+      transition: background .25s ease, color .25s ease;
+    }
+
+    .app{
+      display:flex;
+      min-height:100vh;
+    }
+
+    .sidebar{
+      width:240px;
+      padding:16px;
+      background:linear-gradient(180deg, var(--panel), var(--panel2));
+      border-left:1px solid var(--line);
+      box-shadow:var(--shadow);
+      position:sticky;
+      top:0;
+      height:100vh;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      padding:10px 6px 16px;
+      border-bottom:1px solid var(--line);
+    }
+
+    .logo{
+      width:48px;
+      height:48px;
+      border-radius:16px;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      display:grid;
+      place-items:center;
+      font-size:24px;
+      flex-shrink:0;
+      box-shadow:0 10px 24px rgba(56,189,248,.22);
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+    }
+
+    .brand p{
+      margin:4px 0 0;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .nav{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .nav button{
+      width:100%;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:13px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      text-align:right;
+      font-weight:700;
+      transition:.15s ease;
+    }
+
+    .nav button:hover{
+      transform:translateY(-1px);
+      background:rgba(255,255,255,.10);
+    }
+
+    .nav button.active{
+      background:linear-gradient(135deg, rgba(56,189,248,.20), rgba(139,92,246,.18));
+      border-color:rgba(56,189,248,.35);
+    }
+
+    .main{
+      flex:1;
+      padding:18px;
+      min-width:0;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .hero{
+      background:linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border:1px solid var(--line);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:20px;
+      flex:1;
+      min-width:260px;
+      backdrop-filter: blur(12px);
+    }
+
+    .hero h2{
+      margin:0 0 6px;
+      font-size:24px;
+    }
+
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.8;
+      font-size:14px;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:var(--ok);
+      box-shadow:0 0 16px rgba(34,197,94,.6);
+    }
+
+    .page{display:none}
+    .page.active{display:block}
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-head{
+      padding:18px 18px 0;
+    }
+
+    .card-head h3{
+      margin:0;
+      font-size:18px;
+    }
+
+    .card-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.7;
+    }
+
+    .content{
+      padding:18px;
+    }
+
+    .chat-shell{
+      display:flex;
+      flex-direction:column;
+      height:calc(100vh - 170px);
+      min-height:560px;
+    }
+
+    .messages{
+      flex:1;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      padding-right:4px;
+    }
+
+    .bubble{
+      max-width:min(760px, 90%);
+      border:1px solid rgba(255,255,255,.10);
+      background:var(--bubble);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.12);
+      position:relative;
+    }
+
+    .bubble.admin{
+      margin-right:auto;
+      background:linear-gradient(135deg, rgba(56,189,248,.14), rgba(139,92,246,.10));
+      border-color:rgba(56,189,248,.24);
+    }
+
+    .bubble.user{
+      margin-left:auto;
+      background:var(--bubble2);
+    }
+
+    .bubble-top{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      margin-bottom:8px;
+    }
+
+    .name{
+      font-weight:800;
+      font-size:14px;
+    }
+
+    .role{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:3px;
+    }
+
+    .time{
+      color:var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+      flex-shrink:0;
+    }
+
+    .message-text{
+      white-space:pre-wrap;
+      line-height:1.85;
+      font-size:15px;
+      word-break:break-word;
+    }
+
+    .composer{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .field{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      background:var(--field);
+      color:var(--text);
+      border-radius:16px;
+      padding:14px 15px;
+      outline:none;
+      font-size:15px;
+      resize:vertical;
+    }
+
+    .field::placeholder{color:#94a3b8}
+    .field:focus{
+      border-color:rgba(56,189,248,.45);
+      box-shadow:0 0 0 3px rgba(56,189,248,.12);
+    }
+
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:11px 14px;
+      cursor:pointer;
+      color:white;
+      font-weight:700;
+      transition:transform .15s ease, opacity .15s ease, background .15s ease;
+    }
+
+    .btn:hover{transform:translateY(-1px)}
+    .btn:active{transform:translateY(0);opacity:.92}
+
+    .btn-primary{background:linear-gradient(135deg, var(--accent), var(--accent2))}
+    .btn-dark{background:rgba(255,255,255,.10); border:1px solid var(--line)}
+    .btn-danger{background:linear-gradient(135deg, #ef4444, var(--danger))}
+    .btn-like{background:rgba(255,255,255,.08); border:1px solid var(--line)}
+
+    .small{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.8;
+    }
+
+    .theme-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .footer{
+      margin-top:16px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .admin-fab{
+      position:fixed;
+      left:16px;
+      bottom:16px;
+      z-index:40;
+      width:48px;
+      height:48px;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.7);
+      cursor:pointer;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(10px);
+      opacity:.38;
+      font-size:18px;
+      display:grid;
+      place-items:center;
+      transition:opacity .2s ease, transform .2s ease, background .2s ease;
+    }
+
+    .admin-fab:hover{
+      opacity:.95;
+      transform:scale(1.05);
+      background:rgba(255,255,255,.10);
+    }
+
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.68);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      z-index:50;
+    }
+
+    .modal{
+      width:min(700px, 100%);
+      max-height:min(92vh, 920px);
+      overflow:auto;
+      background:linear-gradient(180deg, rgba(17,24,39,.97), rgba(15,23,42,.99));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    .modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    .xbtn{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      font-size:20px;
+      cursor:pointer;
+    }
+
+    .panel-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .mini-item{
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .mini-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom:8px;
+    }
+
+    .mini-text{
+      line-height:1.7;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .err{color:#fda4af; font-size:13px; min-height:20px; margin:0}
+    .ok{color:#86efac; font-size:13px; min-height:20px; margin:0}
+
+    .name-modal-box{
+      width:min(460px, 100%);
+      background:linear-gradient(180deg, rgba(17,24,39,.98), rgba(15,23,42,.98));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+
+    @media (max-width: 980px){
+      .app{flex-direction:column}
+      .sidebar{
+        width:100%;
+        height:auto;
+        position:relative;
+        border-left:none;
+        border-bottom:1px solid var(--line);
       }
-    ]
-  });
+      .nav{
+        flex-direction:row;
+        flex-wrap:wrap;
+      }
+      .nav button{
+        width:auto;
+        flex:1 1 140px;
+        text-align:center;
+      }
+      .chat-shell{
+        height:auto;
+        min-height:640px;
+      }
+    }
 
-  console.log(response.choices[0].message.content);
-}
+    @media (max-width: 560px){
+      .main{padding:12px}
+      .row, .theme-grid{grid-template-columns:1fr}
+      .bubble{max-width:94%}
+      .admin-fab{left:12px;bottom:12px}
+      .hero, .card, .modal, .name-modal-box{border-radius:22px}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">✦</div>
+        <div>
+          <h1>الدردشة</h1>
+          <p>مصمم مجهول</p>
+        </div>
+      </div>
 
-testSystem();
-</script>
+      <div class="nav">
+        <button class="active" data-page="chat">الدردشة</button>
+        <button data-page="info">معلومات</button>
+        <button data-page="contact">تواصل</button>
+        <button data-page="theme">ثيم</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="hero">
+          <h2>محادثة مباشرة</h2>
+          <p>اكتب اسمك أولًا، ثم أرسل رسائلك.</p>
+        </div>
+        <div class="status"><span class="dot"></span><span>متصل</span></div>
+      </div>
+
+      <section id="chat" class="page active card">
+        <div class="card-head">
+          <h3>الرسائل</h3>
+          <p>الاسم يظهر فوق الرسالة.</p>
+        </div>
+        <div class="content">
+          <div class="chat-shell">
+            <div id="messages" class="messages">
+              <div class="bubble user">
+                <div class="message-text">جاري التحميل...</div>
+              </div>
+            </div>
+
+            <div class="composer">
+              <textarea id="messageInput" class="field" rows="4" placeholder="اكتب الرسالة..."></textarea>
+              <button id="sendBtn" class="btn btn-primary" type="button">إرسال</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="info" class="page card">
+        <div class="card-head">
+          <h3>معلومات</h3>
+        </div>
+        <div class="content">
+          <p class="small"><b>المصمم:</b> مصمم مجهول</p>
+        </div>
+      </section>
+
+      <section id="contact" class="page card">
+        <div class="card-head">
+          <h3>تواصل</h3>
+        </div>
+        <div class="content">
+          <div class="row">
+            <input id="contactName" class="field" type="text" placeholder="اسمك">
+            <input id="contactTopic" class="field" type="text" placeholder="الموضوع">
+          </div>
+          <div style="height:10px"></div>
+          <textarea id="contactText" class="field" rows="5" placeholder="رسالتك للأدمن..."></textarea>
+          <div style="height:10px"></div>
+          <button id="sendContactBtn" class="btn btn-primary" type="button">إرسال</button>
+          <p id="contactStatus" class="ok"></p>
+        </div>
+      </section>
+
+      <section id="theme" class="page card">
+        <div class="card-head">
+          <h3>ثيم</h3>
+        </div>
+        <div class="content">
+          <div class="theme-grid">
+            <button id="darkBtn" class="btn btn-dark" type="button">داكن</button>
+            <button id="lightBtn" class="btn btn-dark" type="button">فاتح</button>
+            <button id="blueBtn" class="btn btn-dark" type="button">أزرق</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">واجهة دردشة فخمة</div>
+    </main>
+  </div>
+
+  <button id="adminBtn" class="admin-fab" type="button" title="أدمن">⚙</button>
+
+  <div id="nameModal" class="modal-backdrop">
+    <div class="name-modal-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;">
+        <div>
+          <h3 style="margin:0;">اكتب اسمك</h3>
+          <div class="small">هذا الاسم سيظهر مع رسائلك</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input id="nameInput" class="field" type="text" placeholder="اسمك">
+        <button id="saveNameBtn" class="btn btn-primary" type="button">دخول</button>
+        <p id="nameErr" class="err"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="loginModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 style="margin:0;">دخول الأدمن</h3>
+          <div class="small">أدخل كلمة السر لفتح لوحة التحكم</div>
+        </div>
+        <button class="xbtn" id="closeLoginBtn" type="button">×</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <input type="password" id="pass" class="field" placeholder="كلمة السر">
+        <button id="loginBtn" class="btn btn-primary" type="button">دخول</button>
+        <p id="err" class="err"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="adminModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 style="margin:0;">لوحة التحكم</h3>
+          <div class="small">رسائل الإدارة ورسائل التواصل</div>
+        </div>
+        <button class="xbtn" id="closeAdminBtn" type="button">×</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="small">إرسال كإدارة</div>
+        <textarea id="adminMessage" class="field" rows="4" placeholder="رسالة الإدارة..."></textarea>
+        <button id="adminSendBtn" class="btn btn-primary" type="button">إرسال</button>
+        <p id="adminStatus" class="ok"></p>
+
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.12);width:100%;">
+
+        <div class="small">رسائل الدردشة</div>
+        <div id="adminMessages" class="panel-list"></div>
+
+        <hr style="border:0;border-top:1px solid rgba(255,255,255,.12);width:100%;">
+
+        <div class="small">رسائل التواصل</div>
+        <div id="inbox" class="panel-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pages = document.querySelectorAll(".page");
+    const navBtns = document.querySelectorAll(".nav button");
+    const savedTheme = localStorage.getItem("site_theme") || "dark";
+
+    function setTheme(mode){
+      document.body.classList.remove("light","blue");
+      if(mode === "light") document.body.classList.add("light");
+      if(mode === "blue") document.body.classList.add("blue");
+      localStorage.setItem("site_theme", mode);
+    }
+    setTheme(savedTheme);
+
+    function showPage(id){
+      pages.forEach(p => p.classList.remove("active"));
+      navBtns.forEach(b => b.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      document.querySelector(`.nav button[data-page="${id}"]`).classList.add("active");
+    }
+
+    navBtns.forEach(btn => {
+      btn.addEventListener("click", () => showPage(btn.dataset.page));
+    });
+
+    document.getElementById("darkBtn").addEventListener("click", () => setTheme("dark"));
+    document.getElementById("lightBtn").addEventListener("click", () => setTheme("light"));
+    document.getElementById("blueBtn").addEventListener("click", () => setTheme("blue"));
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getDatabase, ref, push, set, get, onValue, remove, runTransaction } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBEKU1jTS9KWgFWMmb6z_DD0I4thQJC3NY",
+      authDomain: "chat-cdac0.firebaseapp.com",
+      databaseURL: "https://chat-cdac0-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chat-cdac0",
+      storageBucket: "chat-cdac0.firebasestorage.app",
+      messagingSenderId: "454594629400",
+      appId: "1:454594629400:web:c9da8399ee8b199bcc186d",
+      measurementId: "G-BB3256HXQN"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const messagesRef = ref(db, "chat/messages");
+    const inboxRef = ref(db, "chat/inbox");
+
+    const adminBtn = document.getElementById("adminBtn");
+    const nameModal = document.getElementById("nameModal");
+    const loginModal = document.getElementById("loginModal");
+    const adminModal = document.getElementById("adminModal");
+    const saveNameBtn = document.getElementById("saveNameBtn");
+    const closeLoginBtn = document.getElementById("closeLoginBtn");
+    const closeAdminBtn = document.getElementById("closeAdminBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const adminSendBtn = document.getElementById("adminSendBtn");
+    const sendBtn = document.getElementById("sendBtn");
+    const sendContactBtn = document.getElementById("sendContactBtn");
+    const adminMessages = document.getElementById("adminMessages");
+    const inbox = document.getElementById("inbox");
+    const messagesBox = document.getElementById("messages");
+
+    const nameInput = document.getElementById("nameInput");
+    const messageInput = document.getElementById("messageInput");
+    const contactName = document.getElementById("contactName");
+    const contactTopic = document.getElementById("contactTopic");
+    const contactText = document.getElementById("contactText");
+    const contactStatus = document.getElementById("contactStatus");
+
+    const passInput = document.getElementById("pass");
+    const adminMessage = document.getElementById("adminMessage");
+    const errBox = document.getElementById("err");
+    const nameErr = document.getElementById("nameErr");
+    const adminStatus = document.getElementById("adminStatus");
+
+    const PASS = "1234";
+    const nameKey = "chat_name";
+    const adminKey = "chat_admin";
+    const uidKey = "chat_uid";
+
+    let userName = localStorage.getItem(nameKey) || "";
+    let isAdmin = localStorage.getItem(adminKey) === "1";
+
+    let uid = localStorage.getItem(uidKey);
+    if (!uid) {
+      uid = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("u_" + Date.now() + "_" + Math.random().toString(36).slice(2));
+      localStorage.setItem(uidKey, uid);
+    }
+
+    function esc(str) {
+      return String(str ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function fmtTime(ts) {
+      try {
+        return new Date(ts || Date.now()).toLocaleString("ar-DZ", {
+          day: "2-digit",
+          month: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      } catch {
+        return "";
+      }
+    }
+
+    function normalizeObject(obj) {
+      if (!obj || typeof obj !== "object") return [];
+      return Object.entries(obj).sort((a, b) => (a[1]?.time || 0) - (b[1]?.time || 0));
+    }
+
+    function openNameModal() {
+      if (!userName) {
+        nameModal.style.display = "flex";
+        document.getElementById("nameInput").focus();
+      }
+    }
+
+    openNameModal();
+
+    saveNameBtn.addEventListener("click", () => {
+      const value = document.getElementById("nameInput").value.trim();
+      if (!value) {
+        nameErr.textContent = "اكتب اسمك";
+        return;
+      }
+
+      userName = value.slice(0, 40);
+      localStorage.setItem(nameKey, userName);
+      nameModal.style.display = "none";
+      nameErr.textContent = "";
+      nameInput.value = userName;
+    });
+
+    function makeBubble(item, id, adminView = false) {
+      const wrap = document.createElement("div");
+      wrap.className = `bubble ${item?.role === "admin" ? "admin" : "user"}`;
+
+      const top = document.createElement("div");
+      top.className = "bubble-top";
+
+      const left = document.createElement("div");
+
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = item?.name?.trim() ? item.name : "زائر";
+
+      const role = document.createElement("div");
+      role.className = "role";
+      role.textContent = item?.role === "admin" ? "إدارة" : "رسالة";
+
+      left.appendChild(name);
+      left.appendChild(role);
+
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = fmtTime(item?.time);
+
+      top.appendChild(left);
+      top.appendChild(time);
+
+      const text = document.createElement("div");
+      text.className = "message-text";
+      text.textContent = item?.text || "";
+
+      wrap.appendChild(top);
+      wrap.appendChild(text);
+
+      if (adminView) {
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        const del = document.createElement("button");
+        del.className = "btn btn-danger";
+        del.type = "button";
+        del.textContent = "حذف";
+        del.addEventListener("click", () => remove(ref(db, `chat/messages/${id}`)));
+        actions.appendChild(del);
+        wrap.appendChild(actions);
+      }
+
+      return wrap;
+    }
+
+    function makeInboxItem(id, item) {
+      const box = document.createElement("div");
+      box.className = "mini-item";
+      box.innerHTML = `
+        <div class="mini-top">
+          <div>
+            <div style="font-weight:800;margin-bottom:4px">${esc(item?.name?.trim() ? item.name : "زائر")}</div>
+            <div class="small">${esc(item?.topic?.trim() ? item.topic : "")}</div>
+          </div>
+          <div class="time">${fmtTime(item?.time)}</div>
+        </div>
+        <div class="mini-text">${esc(item?.message || "")}</div>
+      `;
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const del = document.createElement("button");
+      del.className = "btn btn-danger";
+      del.type = "button";
+      del.textContent = "حذف";
+      del.addEventListener("click", () => remove(ref(db, `chat/inbox/${id}`)));
+
+      actions.appendChild(del);
+      box.appendChild(actions);
+      return box;
+    }
+
+    function scrollToBottom() {
+      messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    function requireName() {
+      if (!userName) {
+        nameModal.style.display = "flex";
+        return false;
+      }
+      return true;
+    }
+
+    async function sendMessage(role = "user") {
+      if (role !== "admin" && !requireName()) return;
+
+      const text = (role === "admin" ? adminMessage.value : messageInput.value).trim();
+      if (!text) return;
+
+      await push(messagesRef, {
+        name: role === "admin" ? "الإدارة" : userName,
+        text,
+        role,
+        time: Date.now(),
+        uid
+      });
+
+      if (role === "admin") {
+        adminMessage.value = "";
+        adminStatus.className = "ok";
+        adminStatus.textContent = "تم الإرسال";
+      } else {
+        messageInput.value = "";
+      }
+    }
+
+    async function sendContact() {
+      const name = contactName.value.trim().slice(0, 40);
+      const topic = contactTopic.value.trim().slice(0, 40);
+      const text = contactText.value.trim();
+
+      if (!text) {
+        contactStatus.className = "err";
+        contactStatus.textContent = "اكتب رسالة";
+        return;
+      }
+
+      await push(inboxRef, {
+        name: name || userName || "زائر",
+        topic: topic || "",
+        message: text,
+        time: Date.now(),
+        uid
+      });
+
+      contactName.value = "";
+      contactTopic.value = "";
+      contactText.value = "";
+      contactStatus.className = "ok";
+      contactStatus.textContent = "تم";
+    }
+
+    adminBtn.addEventListener("click", () => {
+      loginModal.style.display = "flex";
+      passInput.focus();
+      errBox.textContent = "";
+    });
+
+    closeLoginBtn.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      passInput.value = "";
+      errBox.textContent = "";
+    });
+
+    closeAdminBtn.addEventListener("click", () => {
+      adminModal.style.display = "none";
+    });
+
+    loginBtn.addEventListener("click", () => {
+      if (passInput.value.trim() === PASS) {
+        isAdmin = true;
+        localStorage.setItem(adminKey, "1");
+        loginModal.style.display = "none";
+        adminModal.style.display = "flex";
+        errBox.textContent = "";
+      } else {
+        errBox.className = "err";
+        errBox.textContent = "خطأ";
+      }
+    });
+
+    sendBtn.addEventListener("click", () => sendMessage("user"));
+    adminSendBtn.addEventListener("click", () => sendMessage("admin"));
+    sendContactBtn.addEventListener("click", sendContact);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && document.activeElement === passInput) {
+        loginBtn.click();
+      }
+    });
+
+    onValue(messagesRef, (snap) => {
+      const data = snap.val();
+      adminMessages.innerHTML = "";
+      messagesBox.innerHTML = "";
+
+      if (!data) {
+        messagesBox.innerHTML = `<div class="bubble user"><div class="message-text">لا توجد رسائل بعد.</div></div>`;
+        adminMessages.innerHTML = `<div class="mini-item"><div class="mini-text">لا توجد رسائل بعد.</div></div>`;
+        return;
+      }
+
+      const entries = normalizeObject(data);
+
+      for (const [id, item] of entries) {
+        messagesBox.appendChild(makeBubble(item, id, false));
+        if (isAdmin) {
+          adminMessages.appendChild(makeBubble(item, id, true));
+        }
+      }
+
+      requestAnimationFrame(scrollToBottom);
+    });
+
+    onValue(inboxRef, (snap) => {
+      const data = snap.val();
+      inbox.innerHTML = "";
+
+      if (!data) {
+        inbox.innerHTML = `<div class="mini-item"><div class="mini-text">لا توجد رسائل.</div></div>`;
+        return;
+      }
+
+      const entries = normalizeObject(data);
+      for (const [id, item] of entries) {
+        if (isAdmin) {
+          inbox.appendChild(makeInboxItem(id, item));
+        }
+      }
+
+      if (!isAdmin) {
+        inbox.innerHTML = "";
+      }
+    });
+
+    // فتح الاسم تلقائيًا إذا لم يكن موجودًا
+    if (!userName) openNameModal();
+  </script>
+</body>
+  </html>
